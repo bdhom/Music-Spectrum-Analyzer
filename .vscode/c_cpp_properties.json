@@ -1,0 +1,30 @@
+{
+    "configurations": [
+        {
+            "name": "STM32F407G-DISC1",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "compilerPath": "${env:ARM_NONE_EABI_HOME}/bin/arm-none-eabi-gcc.exe",
+            "cStandard": "c17",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "windows-gcc-arm",
+            "compilerArgs": [
+                "-c",
+                "-g",
+                "-mcpu=cortex-m4",
+                "-mthumb",
+                "-std=gnu11",
+                "-Wall",
+                "-mfloat-abi=soft"
+            ],
+            "configurationProvider": "ms-vscode.makefile-tools"
+        }
+    ],
+    "version": 4
+}

@@ -3,25 +3,34 @@
         {
             "name": "STM32F407G-DISC1",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/Core/Inc",
+                "${workspaceFolder}/Drivers/STM32F4xx_HAL_Driver/Inc",
+                "${workspaceFolder}/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy",
+                "${workspaceFolder}/Middlewares/Third_Party/FreeRTOS/Source/include",
+                "${workspaceFolder}/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F",
+                "${workspaceFolder}/Drivers/CMSIS/Device/ST/STM32F4xx/Include",
+                "${workspaceFolder}/Drivers/CMSIS/Include"
             ],
             "defines": [
-                "_DEBUG",
-                "UNICODE",
-                "_UNICODE"
+                "DEBUG",
+                "USE_HAL_DRIVER",
+                "STM32F407xx"
             ],
             "compilerPath": "${env:ARM_NONE_EABI_HOME}/bin/arm-none-eabi-gcc.exe",
             "cStandard": "c17",
-            "cppStandard": "c++20",
             "intelliSenseMode": "windows-gcc-arm",
             "compilerArgs": [
-                "-c",
-                "-g",
                 "-mcpu=cortex-m4",
                 "-mthumb",
-                "-std=gnu11",
+                "-mfpu=fpv4-sp-d16",
+                "-mfloat-abi=hard",
+                "-Og",
                 "-Wall",
-                "-mfloat-abi=soft"
+                "-fdata-sections",
+                "-ffunction-sections",
+                "-std=gnu17",
+                "-g",
+                "-gdwarf-2"
             ],
             "configurationProvider": "ms-vscode.makefile-tools"
         }

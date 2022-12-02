@@ -22,7 +22,11 @@ TARGET = Simple_FreeRTOS
 # debug build?
 DEBUG = 1
 # optimization
+ifeq ($(DEBUG), 1)
 OPT = -Og
+else
+OPT = -Os
+endif
 
 
 #######################################
@@ -135,7 +139,7 @@ C_INCLUDES =  \
 # compile gcc flags
 ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
 
-CFLAGS += $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
+CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections -std=gn17
 
 ifeq ($(DEBUG), 1)
 CFLAGS += -g -gdwarf-2

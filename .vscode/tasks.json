@@ -22,7 +22,9 @@
             "type": "cppbuild",
             "label": "make all",
             "command": "make",
-            "args": [],
+            "args": [
+                "all"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}"
             },

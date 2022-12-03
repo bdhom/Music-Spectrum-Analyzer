@@ -114,7 +114,7 @@ int main(void)
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
-
+  printf("Starting task scheduler again...\n");
   /* Start scheduler */
   vTaskStartScheduler();
 

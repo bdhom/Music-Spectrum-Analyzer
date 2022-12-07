@@ -42,6 +42,7 @@ BUILD_DIR = build
 C_SOURCES =  \
 Core/Src/main.c \
 Core/Src/freertos.c \
+Core/Src/u8g2_stm32f4.c \
 Core/Src/stm32f4xx_it.c \
 Core/Src/system_stm32f4xx.c \
 Core/Src/stm32f4xx_hal_msp.c \
@@ -61,6 +62,7 @@ Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c \
 Middlewares/FreeRTOS/src/croutine.c \
 Middlewares/FreeRTOS/src/event_groups.c \
 Middlewares/FreeRTOS/src/list.c \
@@ -159,7 +161,7 @@ Middlewares/u8g2/src/u8x8_u16toa.c \
 Middlewares/u8g2/src/u8x8_d_a2printer.c \
 Middlewares/u8g2/src/u8x8_d_st7565.c \
 Middlewares/u8g2/src/u8x8_capture.c \
-Middlewares/u8g2/src/u8g2_button.c \
+Middlewares/u8g2/src/u8g2_button.c
 
 # ASM sources
 ASM_SOURCES =  \

@@ -1,14 +1,22 @@
 #include "main.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "u8g2.h"
 
 #include <stdio.h>
 #include <stdint.h>
 
 extern void initialise_monitor_handles(void);
+extern uint8_t u8x8_stm32_gpio_and_delay(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
+extern uint8_t u8x8_byte_4wire_hw_spi(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
 
 void SystemClock_Config(void);
 static void GPIO_Init(void);
+static void SPI_Init(void);
+static void OLED_Init(void);
+
+SPI_HandleTypeDef SPI1_Handle = {0};
+u8g2_t u8g2 = {0};
 
 int main(void)
 {
@@ -16,11 +24,22 @@ int main(void)
   HAL_Init();
   SystemClock_Config();
   GPIO_Init();
+  SPI_Init();
+  OLED_Init();
+
+  // vTaskStartScheduler();
   
-  vTaskStartScheduler();
-  
-  // Control should not reach here
-  while (1) { }
+  while (1)
+  {
+    u8g2_FirstPage(&u8g2);
+    
+    do
+    {
+      u8g2_SetFont(&u8g2, u8g2_font_ncenB14_tr);
+      u8g2_DrawStr(&u8g2, 0, 15, "Hello World!");
+      u8g2_DrawCircle(&u8g2, 64, 40, 10, U8G2_DRAW_ALL);
+    } while (u8g2_NextPage(&u8g2));
+  }
 }
 
 /**
@@ -79,6 +98,7 @@ static void GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
@@ -96,6 +116,69 @@ static void GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : OLED_CS_Pin OLED_DC_Pin OLED_RES_Pin */
+  GPIO_InitStruct.Pin = OLED_CS_Pin|OLED_DC_Pin|OLED_RES_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : OLED_SCLK_Pin OLED_SDIN_Pin */
+  GPIO_InitStruct.Pin = OLED_SCLK_Pin|OLED_SDIN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+}
+
+/**
+  * @brief SPI Initialization Function
+  * @param None
+  * @retval None
+  */
+static void SPI_Init(void)
+{
+  __HAL_RCC_SPI1_CLK_ENABLE();
+
+  SPI_InitTypeDef SPI_Init = {0};
+
+  SPI_Init.Mode = SPI_MODE_MASTER;
+  SPI_Init.Direction = SPI_DIRECTION_1LINE;
+  SPI_Init.DataSize = SPI_DATASIZE_8BIT;
+  SPI_Init.CLKPolarity = SPI_POLARITY_HIGH;
+  SPI_Init.CLKPhase = SPI_PHASE_1EDGE;
+  SPI_Init.FirstBit = SPI_FIRSTBIT_MSB;
+  SPI_Init.NSS = SPI_NSS_SOFT;
+  SPI_Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
+
+  SPI1_Handle.Init = SPI_Init;
+  SPI1_Handle.Instance = SPI1;
+
+  if (HAL_SPI_Init(&SPI1_Handle) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
+static void OLED_Init(void)
+{
+  u8g2_Setup_ssd1306_128x64_noname_1(&u8g2, U8G2_R0, u8x8_byte_4wire_hw_spi, u8x8_stm32_gpio_and_delay);
+  u8g2_InitDisplay(&u8g2);
+  u8g2_SetPowerSave(&u8g2, 0);
+}
+
+// TODO: Implement callback
+void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
+{
+  while (1) { }
+}
+
+// TODO: Implement callback
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+
 }
 
 /**
@@ -121,6 +204,8 @@ void Error_Handler(void)
 {
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
+
+  printf("Unhandled error trap\n");
   while (1)
   {
   }

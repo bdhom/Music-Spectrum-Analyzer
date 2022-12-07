@@ -23,7 +23,9 @@
             "label": "make all",
             "command": "make",
             "args": [
-                "all"
+                "all",
+                "-j",
+                "8"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

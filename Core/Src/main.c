@@ -1,44 +1,55 @@
 #include "main.h"
+
 #include "FreeRTOS.h"
 #include "task.h"
-#include "u8g2.h"
+#include "display.h"
 
 #include <stdio.h>
 #include <stdint.h>
 
-extern void initialise_monitor_handles(void);
-extern uint8_t u8x8_stm32_gpio_and_delay(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
-extern uint8_t u8x8_byte_4wire_hw_spi(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
+#define BIN_TOTAL 20
+#define BIN_INCR 2
 
+extern void initialise_monitor_handles(void);
 void SystemClock_Config(void);
 static void GPIO_Init(void);
 static void SPI_Init(void);
-static void OLED_Init(void);
 
 SPI_HandleTypeDef SPI1_Handle = {0};
-u8g2_t u8g2 = {0};
 
 int main(void)
 {
+  uint8_t bins[BIN_TOTAL] = {0};
+
   initialise_monitor_handles();
   HAL_Init();
   SystemClock_Config();
   GPIO_Init();
   SPI_Init();
-  OLED_Init();
+  Display_Init();
 
   // vTaskStartScheduler();
+
+  for (int i = 0; i < BIN_TOTAL; i++)
+  {
+    bins[i] = i * BIN_INCR;
+  }
   
   while (1)
   {
-    u8g2_FirstPage(&u8g2);
-    
-    do
+    for (int i = 0; i < BIN_TOTAL; i++)
     {
-      u8g2_SetFont(&u8g2, u8g2_font_ncenB14_tr);
-      u8g2_DrawStr(&u8g2, 0, 15, "Hello World!");
-      u8g2_DrawCircle(&u8g2, 64, 40, 10, U8G2_DRAW_ALL);
-    } while (u8g2_NextPage(&u8g2));
+      bins[i] += BIN_INCR;
+
+      if (bins[i] > BIN_MAX_HEIGHT)
+      {
+        bins[i] = 0;
+      }
+    }
+
+    HAL_Delay(33);
+    Display_WriteBins(bins, BIN_TOTAL);
+    Display_SendPage();
   }
 }
 
@@ -160,13 +171,6 @@ static void SPI_Init(void)
   {
     Error_Handler();
   }
-}
-
-static void OLED_Init(void)
-{
-  u8g2_Setup_ssd1306_128x64_noname_1(&u8g2, U8G2_R0, u8x8_byte_4wire_hw_spi, u8x8_stm32_gpio_and_delay);
-  u8g2_InitDisplay(&u8g2);
-  u8g2_SetPowerSave(&u8g2, 0);
 }
 
 // TODO: Implement callback

@@ -41,6 +41,7 @@ BUILD_DIR = build
 # C sources
 C_SOURCES =  \
 Core/Src/main.c \
+Core/Src/display.c \
 Core/Src/freertos.c \
 Core/Src/u8g2_stm32f4.c \
 Core/Src/stm32f4xx_it.c \

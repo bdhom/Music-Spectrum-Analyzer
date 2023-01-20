@@ -1,0 +1,35 @@
+---
+# We'll use defaults from the LLVM style, but with 4 columns indentation.
+IndentWidth: 4
+TabWidth: 4
+---
+Language: Cpp
+NamespaceIndentation: All
+DerivePointerAlignment: false
+PointerAlignment: Right
+ColumnLimit: 100
+IndentCaseLabels: true
+UseTab: Never
+SortIncludes: Never
+BreakBeforeBraces: Allman
+
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Empty
+AllowShortFunctionsOnASingleLine: Empty
+
+AlignArrayOfStructures: Right
+AlignConsecutiveBitFields: true
+AlignConsecutiveMacros:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: false
+AlignTrailingComments: true
+---
+Language: JavaScript
+ColumnLimit: 100
+---
+Language: Proto
+DisableFormat: true
+---
+Language: CSharp
+ColumnLimit: 100

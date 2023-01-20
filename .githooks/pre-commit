@@ -1,0 +1,38 @@
+#!/usr/bin/env python
+
+import subprocess
+import os
+
+try:
+    subprocess.run(["clang-format", "--version"], check=True)
+except:
+    print("clang-format is not installed. Aborting.")
+    exit(1)
+
+result = subprocess.run(
+    ["git", "diff", "--cached", "--name-only", "--diff-filter=ACM"],
+    stdout=subprocess.PIPE,
+    check=True,
+    universal_newlines=True
+)
+
+files = result.stdout.strip().split("\n")
+retCode = 0
+improperFiles = []
+
+for file in files:
+    if file.endswith((".c", ".cpp", ".h")):
+        formatResult = subprocess.call(["clang-format", "--dry-run", "-Werror", file],
+            stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+
+        if formatResult == 1:
+            improperFiles.append(file)
+            retCode = 1
+
+if (retCode == 1):
+    print("Please clang-format the following files:")
+
+    for improperFile in improperFiles:
+        print(improperFile)
+
+exit(retCode)

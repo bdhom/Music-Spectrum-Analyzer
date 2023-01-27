@@ -64,6 +64,15 @@ Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c \
+Drivers/CMSIS/DSP/Source/CommonTables/arm_const_structs.c \
+Drivers/CMSIS/DSP/Source/CommonTables/arm_common_tables.c \
+Drivers/CMSIS/DSP/Source/ComplexMathFunctions/arm_cmplx_mag_f32.c \
+Drivers/CMSIS/DSP/Source/StatisticsFunctions/arm_max_f32.c \
+Drivers/CMSIS/DSP/Source/TransformFunctions/arm_bitreversal.c \
+Drivers/CMSIS/DSP/Source/TransformFunctions/arm_cfft_f32.c \
+Drivers/CMSIS/DSP/Source/TransformFunctions/arm_cfft_radix4_f32.c \
+Drivers/CMSIS/DSP/Source/TransformFunctions/arm_cfft_radix8_f32.c \
+Drivers/CMSIS/DSP/Source/TransformFunctions/arm_cfft_radix4_init_f32.c \
 Middlewares/FreeRTOS/src/croutine.c \
 Middlewares/FreeRTOS/src/event_groups.c \
 Middlewares/FreeRTOS/src/list.c \
@@ -166,7 +175,8 @@ Middlewares/u8g2/src/u8g2_button.c
 
 # ASM sources
 ASM_SOURCES =  \
-startup_stm32f407xx.s
+startup_stm32f407xx.s \
+Drivers/CMSIS/DSP/Source/TransformFunctions/arm_bitreversal2.s
 
 
 #######################################
@@ -201,8 +211,11 @@ FPU = -mfpu=fpv4-sp-d16
 # float-abi
 FLOAT-ABI = -mfloat-abi=hard
 
+# precision
+PRECISION = -fsingle-precision-constant
+
 # mcu
-MCU = $(CPU) -mthumb $(FPU) $(FLOAT-ABI)
+MCU = $(CPU) -mthumb $(FPU) $(FLOAT-ABI) $(PRECISION)
 
 # macros for gcc
 # AS defines
@@ -211,12 +224,15 @@ AS_DEFS =
 # C defines
 C_DEFS =  \
 -DUSE_HAL_DRIVER \
--DSTM32F407xx
+-DSTM32F407xx \
+-DARM_MATH_CM4 \
+-D__FPU_PRESENT=1
 
 
 # AS includes
 AS_INCLUDES =  \
--ICore\Inc
+-ICore\Inc \
+-IDrivers/CMSIS/DSP/Include
 
 # C includes
 C_INCLUDES =  \
@@ -227,7 +243,8 @@ C_INCLUDES =  \
 -IMiddlewares/FreeRTOS/src/portable/GCC/ARM_CM4F \
 -IMiddlewares/u8g2/include \
 -IDrivers/CMSIS/Device/ST/STM32F4xx/Include \
--IDrivers/CMSIS/Include
+-IDrivers/CMSIS/Include \
+-IDrivers/CMSIS/DSP/Include
 
 
 # compile gcc flags

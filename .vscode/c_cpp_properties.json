@@ -10,12 +10,15 @@
                 "${workspaceFolder}/Middlewares/FreeRTOS/src/portable/GCC/ARM_CM4F",
                 "${workspaceFolder}/Middlewares/u8g2/include",
                 "${workspaceFolder}/Drivers/CMSIS/Device/ST/STM32F4xx/Include",
-                "${workspaceFolder}/Drivers/CMSIS/Include"
+                "${workspaceFolder}/Drivers/CMSIS/Include",
+                "${workspaceFolder}/Drivers/CMSIS/DSP/Include"
             ],
             "defines": [
                 "DEBUG",
                 "USE_HAL_DRIVER",
-                "STM32F407xx"
+                "STM32F407xx",
+                "ARM_MATH_CM4",
+                "__FPU_PRESENT=1"
             ],
             "compilerPath": "${env:ARM_NONE_EABI_HOME}/bin/arm-none-eabi-gcc.exe",
             "cStandard": "c17",
@@ -29,6 +32,7 @@
                 "-Wall",
                 "-fdata-sections",
                 "-ffunction-sections",
+                "-fsingle-precision-constant",
                 "-std=gnu17",
                 "-g",
                 "-gdwarf-2"

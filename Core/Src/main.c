@@ -9,9 +9,6 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define BIN_TOTAL 20
-#define BIN_INCR  2
-
 #define SAMPLE_SIZE 256
 #define FFT_SIZE    (SAMPLE_SIZE / 2)
 
@@ -63,7 +60,6 @@ int main(void)
 {
     float32_t maxValue;
     uint32_t maxIndex;
-    uint8_t bins[BIN_TOTAL] = {0};
 
     initialise_monitor_handles();
     HAL_Init();
@@ -74,11 +70,6 @@ int main(void)
 
     // vTaskStartScheduler();
 
-    for (int i = 0; i < BIN_TOTAL; i++)
-    {
-        bins[i] = i * BIN_INCR;
-    }
-
     while (1)
     {
         copy_array(TestSineWave, Input, SAMPLE_SIZE);
@@ -87,18 +78,8 @@ int main(void)
         arm_cmplx_mag_f32(Input, Output, FFT_SIZE);
         arm_max_f32(Output, FFT_SIZE, &maxValue, &maxIndex);
 
-        for (int i = 0; i < BIN_TOTAL; i++)
-        {
-            bins[i] += BIN_INCR;
-
-            if (bins[i] > BIN_MAX_HEIGHT)
-            {
-                bins[i] = 0;
-            }
-        }
-
         HAL_Delay(33);
-        Display_WriteBins(bins, BIN_TOTAL);
+        Display_WriteBins(Output, maxValue, FFT_SIZE);
         Display_SendPage();
     }
 }

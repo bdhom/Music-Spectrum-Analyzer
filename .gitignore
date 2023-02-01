@@ -42,6 +42,7 @@ _deps
 ### Custom ###
 TODO.txt
 build
+Spike
 
 *.mxproject
 *.ioc

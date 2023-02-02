@@ -11,7 +11,7 @@
 			"postLaunchCommands": [
 				"monitor arm semihosting enable"
 			],
-			"executable": "./build/Simple_FreeRTOS.elf",
+			"executable": "./build/Music_Spectrum_Analyzer.elf",
 			"request": "launch",
 			"type": "cortex-debug",
 			"servertype": "openocd",

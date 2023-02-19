@@ -9,77 +9,62 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define SAMPLE_SIZE 256
-#define FFT_SIZE    (SAMPLE_SIZE / 2)
+#define MAX(A, B)   (((A) > (B)) ? (A) : (B))
+#define ZERO_MIN(A) MAX(A, 0)
+
+#define MEMS_SAMPLE_FREQ 48387.0f
+#define BIN_TOTAL        10
+#define FFT_SIZE         2048
+#define FREQ_COUNT       (FFT_SIZE / 2)
+#define FREQ_PER_COUNT   (MEMS_SAMPLE_FREQ / FFT_SIZE) // ~23.63 Hz / count
+
+#define BIN_CEILING 300.0f
+#define BIN_FLOOR   300.0f
 
 extern void initialise_monitor_handles(void);
-void SystemClock_Config(void);
+
+static void SystemClock_Config(void);
 static void GPIO_Init(void);
 static void SPI_Init(void);
-static void copy_array(float32_t *src, float32_t *dest, uint16_t len);
+static void I2S_Init(void);
+
+static void get_samples(void);
+static void process_samples(void);
+static void fill_bins(void);
 
 SPI_HandleTypeDef SPI1_Handle = {0};
+I2S_HandleTypeDef I2S3_Handle = {0};
 
-float32_t TestSineWave[SAMPLE_SIZE] = {
-    0.000000,  0.049068,  0.098017,  0.146730,  0.195090,  0.242980,  0.290285,  0.336890,
-    0.382683,  0.427555,  0.471397,  0.514103,  0.555570,  0.595699,  0.634393,  0.671559,
-    0.707107,  0.740951,  0.773010,  0.803208,  0.831470,  0.857729,  0.881921,  0.903989,
-    0.923880,  0.941544,  0.956940,  0.970031,  0.980785,  0.989177,  0.995185,  0.998795,
-    1.000000,  0.998795,  0.995185,  0.989177,  0.980785,  0.970031,  0.956940,  0.941544,
-    0.923880,  0.903989,  0.881921,  0.857729,  0.831470,  0.803208,  0.773010,  0.740951,
-    0.707107,  0.671559,  0.634393,  0.595699,  0.555570,  0.514103,  0.471397,  0.427555,
-    0.382683,  0.336890,  0.290285,  0.242980,  0.195090,  0.146730,  0.098017,  0.049068,
-    0.000000,  -0.049068, -0.098017, -0.146730, -0.195090, -0.242980, -0.290285, -0.336890,
-    -0.382683, -0.427555, -0.471397, -0.514103, -0.555570, -0.595699, -0.634393, -0.671559,
-    -0.707107, -0.740951, -0.773010, -0.803208, -0.831470, -0.857729, -0.881921, -0.903989,
-    -0.923880, -0.941544, -0.956940, -0.970031, -0.980785, -0.989177, -0.995185, -0.998795,
-    -1.000000, -0.998795, -0.995185, -0.989177, -0.980785, -0.970031, -0.956940, -0.941544,
-    -0.923880, -0.903989, -0.881921, -0.857729, -0.831470, -0.803208, -0.773010, -0.740951,
-    -0.707107, -0.671559, -0.634393, -0.595699, -0.555570, -0.514103, -0.471397, -0.427555,
-    -0.382683, -0.336890, -0.290285, -0.242980, -0.195090, -0.146730, -0.098017, -0.049068,
-    -0.000000, 0.049068,  0.098017,  0.146730,  0.195090,  0.242980,  0.290285,  0.336890,
-    0.382683,  0.427555,  0.471397,  0.514103,  0.555570,  0.595699,  0.634393,  0.671559,
-    0.707107,  0.740951,  0.773010,  0.803208,  0.831470,  0.857729,  0.881921,  0.903989,
-    0.923880,  0.941544,  0.956940,  0.970031,  0.980785,  0.989177,  0.995185,  0.998795,
-    1.000000,  0.998795,  0.995185,  0.989177,  0.980785,  0.970031,  0.956940,  0.941544,
-    0.923880,  0.903989,  0.881921,  0.857729,  0.831470,  0.803208,  0.773010,  0.740951,
-    0.707107,  0.671559,  0.634393,  0.595699,  0.555570,  0.514103,  0.471397,  0.427555,
-    0.382683,  0.336890,  0.290285,  0.242980,  0.195090,  0.146730,  0.098017,  0.049068,
-    0.000000,  -0.049068, -0.098017, -0.146730, -0.195090, -0.242980, -0.290285, -0.336890,
-    -0.382683, -0.427555, -0.471397, -0.514103, -0.555570, -0.595699, -0.634393, -0.671559,
-    -0.707107, -0.740951, -0.773010, -0.803208, -0.831470, -0.857729, -0.881921, -0.903989,
-    -0.923880, -0.941544, -0.956940, -0.970031, -0.980785, -0.989177, -0.995185, -0.998795,
-    -1.000000, -0.998795, -0.995185, -0.989177, -0.980785, -0.970031, -0.956940, -0.941544,
-    -0.923880, -0.903989, -0.881921, -0.857729, -0.831470, -0.803208, -0.773010, -0.740951,
-    -0.707107, -0.671559, -0.634393, -0.595699, -0.555570, -0.514103, -0.471397, -0.427555,
-    -0.382683, -0.336890, -0.290285, -0.242980, -0.195090, -0.146730, -0.098017, -0.049068};
-float32_t Input[SAMPLE_SIZE];
-float32_t Output[FFT_SIZE];
+uint16_t rxBuf[4 * FFT_SIZE + 2];
+float32_t fftInBuf[FFT_SIZE];
+float32_t fftOutBuf[FFT_SIZE];
+float32_t freqs[FREQ_COUNT];
+float32_t bins[BIN_TOTAL];
+uint16_t freqIndices[BIN_TOTAL] = {1, 2, 5, 10, 25, 50, 100, 200, 500, 1000};
+
+arm_rfft_fast_instance_f32 fft_handler;
 
 int main(void)
 {
-    float32_t maxValue;
-    uint32_t maxIndex;
-
     initialise_monitor_handles();
     HAL_Init();
     SystemClock_Config();
     GPIO_Init();
     SPI_Init();
+    I2S_Init();
     Display_Init();
+
+    arm_rfft_fast_init_f32(&fft_handler, FFT_SIZE);
 
     // vTaskStartScheduler();
 
     while (1)
     {
-        copy_array(TestSineWave, Input, SAMPLE_SIZE);
+        get_samples();
+        process_samples();
+        fill_bins();
 
-        arm_cfft_f32(&arm_cfft_sR_f32_len128, Input, 0, 1);
-        arm_cmplx_mag_f32(Input, Output, FFT_SIZE);
-        arm_max_f32(Output, FFT_SIZE, &maxValue, &maxIndex);
-
-        HAL_Delay(33);
-        Display_WriteBins(Output, maxValue, FFT_SIZE);
+        Display_WriteBins(bins, BIN_CEILING, BIN_TOTAL);
         Display_SendPage();
     }
 }
@@ -88,10 +73,11 @@ int main(void)
  * @brief System Clock Configuration
  * @retval None
  */
-void SystemClock_Config(void)
+static void SystemClock_Config(void)
 {
     RCC_OscInitTypeDef RCC_OscInitStruct = {0};
     RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+    RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 
     /** Configure the main internal regulator output voltage
      */
@@ -124,6 +110,16 @@ void SystemClock_Config(void)
     RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
     if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
+    {
+        Error_Handler();
+    }
+
+    /** Initializes the PLL clock source for I2S
+     */
+    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I2S;
+    PeriphClkInitStruct.PLLI2S.PLLI2SN = 192;
+    PeriphClkInitStruct.PLLI2S.PLLI2SR = 2;
+    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
     {
         Error_Handler();
     }
@@ -188,12 +184,86 @@ static void SPI_Init(void)
     }
 }
 
-static void copy_array(float32_t *src, float32_t *dest, uint16_t len)
+/**
+ * @brief I2S Initialization Function
+ * @param None
+ * @retval None
+ */
+static void I2S_Init()
 {
-    while (len > 0)
+    __HAL_RCC_SPI3_CLK_ENABLE();
+
+    I2S_InitTypeDef I2S_InitStruct = {0};
+
+    I2S_InitStruct.Mode = I2S_MODE_MASTER_RX;
+    I2S_InitStruct.AudioFreq = I2S_AUDIOFREQ_48K;
+    I2S_InitStruct.ClockSource = I2S_CLOCK_PLL;
+    I2S_InitStruct.CPOL = I2S_CPOL_LOW;
+    I2S_InitStruct.DataFormat = I2S_DATAFORMAT_24B;
+    I2S_InitStruct.Standard = I2S_STANDARD_MSB;
+    I2S_InitStruct.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
+    I2S_InitStruct.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
+
+    I2S3_Handle.Init = I2S_InitStruct;
+    I2S3_Handle.Instance = SPI3;
+
+    if (HAL_I2S_Init(&I2S3_Handle) != HAL_OK)
     {
-        *dest++ = *src++;
-        len--;
+        Error_Handler();
+    }
+}
+
+static void get_samples(void)
+{
+    uint16_t *rx;
+    HAL_StatusTypeDef res;
+
+    // Occassionally data is shifted by 1 (16 bits) in buffer. To account for
+    // this adding one to sample size and checking if data is shifted and
+    // adjusting buffer accordingly
+    res = HAL_I2S_Receive(&I2S3_Handle, rxBuf, 2 * FFT_SIZE + 1, HAL_MAX_DELAY);
+
+    if (res != HAL_OK)
+    {
+        Error_Handler();
+    }
+
+    // This is possibly not true for all cases, but seems to be true for
+    // most. When data has been shifted, the first data element is usually
+    // 0xZ000 ZZZZ. It should be 0xZZZZ Z000.
+    if ((rxBuf[0] & 0x0FFF) != 0)
+    {
+        rx = rxBuf;
+    }
+    else
+    {
+        rx = &rxBuf[1];
+    }
+
+    // Mono-sum to input
+    for (int i = 0; i < FFT_SIZE; i++)
+    {
+        uint32_t temp = (uint32_t)(*rx++ << 16);
+        temp |= *rx++;
+        uint32_t temp2 = (uint32_t)(*rx++ << 16);
+        temp2 |= *rx++;
+
+        fftInBuf[i] = (float32_t)temp + (float32_t)temp2;
+    }
+}
+
+static void process_samples(void)
+{
+    arm_rfft_fast_f32(&fft_handler, fftInBuf, fftOutBuf, 0);
+    arm_cmplx_mag_f32(fftOutBuf, freqs, FREQ_COUNT);
+}
+
+static void fill_bins(void)
+{
+    for (int i = 0; i < BIN_TOTAL; i++)
+    {
+        bins[i] = 20.0f * logf(freqs[freqIndices[i]]) - BIN_FLOOR;
+        bins[i] = ZERO_MIN(bins[i]);
     }
 }
 

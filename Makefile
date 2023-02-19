@@ -64,11 +64,15 @@ Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_i2s.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_i2s_ex.c \
 Drivers/CMSIS/DSP/Source/CommonTables/arm_const_structs.c \
 Drivers/CMSIS/DSP/Source/CommonTables/arm_common_tables.c \
 Drivers/CMSIS/DSP/Source/ComplexMathFunctions/arm_cmplx_mag_f32.c \
 Drivers/CMSIS/DSP/Source/StatisticsFunctions/arm_max_f32.c \
 Drivers/CMSIS/DSP/Source/TransformFunctions/arm_bitreversal.c \
+Drivers/CMSIS/DSP/Source/TransformFunctions/arm_rfft_fast_f32.c \
+Drivers/CMSIS/DSP/Source/TransformFunctions/arm_rfft_fast_init_f32.c \
 Drivers/CMSIS/DSP/Source/TransformFunctions/arm_cfft_f32.c \
 Drivers/CMSIS/DSP/Source/TransformFunctions/arm_cfft_radix4_f32.c \
 Drivers/CMSIS/DSP/Source/TransformFunctions/arm_cfft_radix8_f32.c \

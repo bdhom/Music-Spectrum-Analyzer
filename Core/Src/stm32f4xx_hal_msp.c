@@ -1,5 +1,7 @@
 #include "main.h"
 
+extern DMA_HandleTypeDef DMA_I2S3_Rx_Handle;
+
 void HAL_MspInit(void)
 {
     __HAL_RCC_SYSCFG_CLK_ENABLE();
@@ -54,4 +56,23 @@ void HAL_I2S_MspInit(I2S_HandleTypeDef *hi2s)
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF6_SPI3; // I2S3
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+    /* I2S3 DMA Init */
+    DMA_I2S3_Rx_Handle.Instance = DMA1_Stream0;
+    DMA_I2S3_Rx_Handle.Init.Channel = DMA_CHANNEL_0;
+    DMA_I2S3_Rx_Handle.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    DMA_I2S3_Rx_Handle.Init.PeriphInc = DMA_PINC_DISABLE;
+    DMA_I2S3_Rx_Handle.Init.MemInc = DMA_MINC_ENABLE;
+    DMA_I2S3_Rx_Handle.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+    DMA_I2S3_Rx_Handle.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
+    DMA_I2S3_Rx_Handle.Init.Mode = DMA_CIRCULAR;
+    DMA_I2S3_Rx_Handle.Init.Priority = DMA_PRIORITY_HIGH;
+    DMA_I2S3_Rx_Handle.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+
+    if (HAL_DMA_Init(&DMA_I2S3_Rx_Handle) != HAL_OK)
+    {
+        Error_Handler();
+    }
+
+    __HAL_LINKDMA(hi2s, hdmarx, DMA_I2S3_Rx_Handle);
 }

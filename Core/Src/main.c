@@ -22,50 +22,61 @@
 #define BIN_FLOOR   300.0f
 
 extern void initialise_monitor_handles(void);
-
 static void SystemClock_Config(void);
 static void GPIO_Init(void);
+static void DMA_Init(void);
 static void SPI_Init(void);
 static void I2S_Init(void);
 
-static void get_samples(void);
-static void process_samples(void);
+static void process_samples(uint16_t *rx);
 static void fill_bins(void);
 
+arm_rfft_fast_instance_f32 FFT_Handle;
 SPI_HandleTypeDef SPI1_Handle = {0};
 I2S_HandleTypeDef I2S3_Handle = {0};
+DMA_HandleTypeDef DMA_I2S3_Rx_Handle = {0};
 
-uint16_t rxBuf[4 * FFT_SIZE + 2];
+uint8_t rxBufState = 0;
+
+uint16_t rxBuf[8 * FFT_SIZE];
 float32_t fftInBuf[FFT_SIZE];
 float32_t fftOutBuf[FFT_SIZE];
 float32_t freqs[FREQ_COUNT];
 float32_t bins[BIN_TOTAL];
 uint16_t freqIndices[BIN_TOTAL] = {1, 2, 5, 10, 25, 50, 100, 200, 500, 1000};
 
-arm_rfft_fast_instance_f32 fft_handler;
-
 int main(void)
 {
+    uint16_t *rx;
+
     initialise_monitor_handles();
     HAL_Init();
     SystemClock_Config();
     GPIO_Init();
+    DMA_Init();
     SPI_Init();
     I2S_Init();
     Display_Init();
 
-    arm_rfft_fast_init_f32(&fft_handler, FFT_SIZE);
+    HAL_I2S_Receive_DMA(&I2S3_Handle, rxBuf, 4 * FFT_SIZE);
+
+    arm_rfft_fast_init_f32(&FFT_Handle, FFT_SIZE);
 
     // vTaskStartScheduler();
 
     while (1)
     {
-        get_samples();
-        process_samples();
-        fill_bins();
+        if (rxBufState != 0)
+        {
+            rx = (rxBufState == 1) ? &rxBuf[0] : &rxBuf[4 * FFT_SIZE];
 
-        Display_WriteBins(bins, BIN_CEILING, BIN_TOTAL);
-        Display_SendPage();
+            process_samples(rx);
+            fill_bins();
+            Display_WriteBins(bins, BIN_CEILING, BIN_TOTAL);
+            Display_SendPage();
+
+            rxBufState = 0;
+        }
     }
 }
 
@@ -156,6 +167,22 @@ static void GPIO_Init(void)
 }
 
 /**
+ * @brief DMA Initialization Function
+ * @param None
+ * @retval None
+ */
+static void DMA_Init(void)
+{
+    /* DMA controller clock enable */
+    __HAL_RCC_DMA1_CLK_ENABLE();
+
+    /* DMA interrupt init */
+    /* DMA1_Stream0_IRQn interrupt configuration */
+    HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+}
+
+/**
  * @brief SPI Initialization Function
  * @param None
  * @retval None
@@ -213,33 +240,8 @@ static void I2S_Init()
     }
 }
 
-static void get_samples(void)
+static void process_samples(uint16_t *rx)
 {
-    uint16_t *rx;
-    HAL_StatusTypeDef res;
-
-    // Occassionally data is shifted by 1 (16 bits) in buffer. To account for
-    // this adding one to sample size and checking if data is shifted and
-    // adjusting buffer accordingly
-    res = HAL_I2S_Receive(&I2S3_Handle, rxBuf, 2 * FFT_SIZE + 1, HAL_MAX_DELAY);
-
-    if (res != HAL_OK)
-    {
-        Error_Handler();
-    }
-
-    // This is possibly not true for all cases, but seems to be true for
-    // most. When data has been shifted, the first data element is usually
-    // 0xZ000 ZZZZ. It should be 0xZZZZ Z000.
-    if ((rxBuf[0] & 0x0FFF) != 0)
-    {
-        rx = rxBuf;
-    }
-    else
-    {
-        rx = &rxBuf[1];
-    }
-
     // Mono-sum to input
     for (int i = 0; i < FFT_SIZE; i++)
     {
@@ -250,11 +252,8 @@ static void get_samples(void)
 
         fftInBuf[i] = (float32_t)temp + (float32_t)temp2;
     }
-}
 
-static void process_samples(void)
-{
-    arm_rfft_fast_f32(&fft_handler, fftInBuf, fftOutBuf, 0);
+    arm_rfft_fast_f32(&FFT_Handle, fftInBuf, fftOutBuf, 0);
     arm_cmplx_mag_f32(fftOutBuf, freqs, FREQ_COUNT);
 }
 
@@ -277,6 +276,16 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
 
 // TODO: Implement callback
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {}
+
+void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
+{
+    rxBufState = 1;
+}
+
+void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s)
+{
+    rxBufState = 2;
+}
 
 /**
  * @brief  Period elapsed callback in non blocking mode

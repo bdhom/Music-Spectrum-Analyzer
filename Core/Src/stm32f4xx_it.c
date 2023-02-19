@@ -23,6 +23,7 @@
 #include "stm32f4xx_hal.h"
 
 extern SPI_HandleTypeDef SPI1_Handle;
+extern DMA_HandleTypeDef DMA_I2S3_Rx_Handle;
 extern TIM_HandleTypeDef htim6;
 
 /**
@@ -134,4 +135,12 @@ void TIM6_DAC_IRQHandler(void)
 void SPI1_IRQHandler(void)
 {
     HAL_SPI_IRQHandler(&SPI1_Handle);
+}
+
+/**
+ * @brief This function handles DMA1 stream0 global interrupt.
+ */
+void DMA1_Stream0_IRQHandler(void)
+{
+    HAL_DMA_IRQHandler(&DMA_I2S3_Rx_Handle);
 }

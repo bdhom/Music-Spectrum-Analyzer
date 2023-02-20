@@ -42,7 +42,6 @@ BUILD_DIR = build
 C_SOURCES =  \
 Core/Src/main.c \
 Core/Src/display.c \
-Core/Src/freertos.c \
 Core/Src/u8g2_stm32f4.c \
 Core/Src/stm32f4xx_it.c \
 Core/Src/system_stm32f4xx.c \
@@ -77,15 +76,6 @@ Drivers/CMSIS/DSP/Source/TransformFunctions/arm_cfft_f32.c \
 Drivers/CMSIS/DSP/Source/TransformFunctions/arm_cfft_radix4_f32.c \
 Drivers/CMSIS/DSP/Source/TransformFunctions/arm_cfft_radix8_f32.c \
 Drivers/CMSIS/DSP/Source/TransformFunctions/arm_cfft_radix4_init_f32.c \
-Middlewares/FreeRTOS/src/croutine.c \
-Middlewares/FreeRTOS/src/event_groups.c \
-Middlewares/FreeRTOS/src/list.c \
-Middlewares/FreeRTOS/src/queue.c \
-Middlewares/FreeRTOS/src/stream_buffer.c \
-Middlewares/FreeRTOS/src/tasks.c \
-Middlewares/FreeRTOS/src/timers.c \
-Middlewares/FreeRTOS/src/portable/MemMang/heap_4.c \
-Middlewares/FreeRTOS/src/portable/GCC/ARM_CM4F/port.c \
 Middlewares/u8g2/src/u8x8_setup.c \
 Middlewares/u8g2/src/u8x8_u8toa.c \
 Middlewares/u8g2/src/u8x8_d_ssd1306_96x16.c \
@@ -243,8 +233,6 @@ C_INCLUDES =  \
 -ICore/Inc \
 -IDrivers/STM32F4xx_HAL_Driver/Inc \
 -IDrivers/STM32F4xx_HAL_Driver/Inc/Legacy \
--IMiddlewares/FreeRTOS/include \
--IMiddlewares/FreeRTOS/src/portable/GCC/ARM_CM4F \
 -IMiddlewares/u8g2/include \
 -IDrivers/CMSIS/Device/ST/STM32F4xx/Include \
 -IDrivers/CMSIS/Include \

@@ -2,8 +2,6 @@
 
 #include "arm_math.h"
 #include "arm_const_structs.h"
-#include "FreeRTOS.h"
-#include "task.h"
 #include "display.h"
 
 #include <stdio.h>
@@ -61,8 +59,6 @@ int main(void)
     HAL_I2S_Receive_DMA(&I2S3_Handle, rxBuf, 4 * FFT_SIZE);
 
     arm_rfft_fast_init_f32(&FFT_Handle, FFT_SIZE);
-
-    // vTaskStartScheduler();
 
     while (1)
     {

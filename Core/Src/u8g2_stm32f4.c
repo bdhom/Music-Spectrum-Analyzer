@@ -8,7 +8,6 @@ extern SPI_HandleTypeDef SPI1_Handle;
 
 uint8_t u8x8_stm32_gpio_and_delay(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
 {
-    /* STM32 supports HW SPI, Remove unused cases like U8X8_MSG_DELAY_XXX & U8X8_MSG_GPIO_XXX */
     switch (msg)
     {
         case U8X8_MSG_GPIO_AND_DELAY_INIT:
@@ -38,7 +37,6 @@ uint8_t u8x8_byte_4wire_hw_spi(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void 
     switch (msg)
     {
         case U8X8_MSG_BYTE_SEND:
-            // TODO: Implement IT instead of blocking
             HAL_SPI_Transmit(&SPI1_Handle, (uint8_t *)arg_ptr, arg_int, 10000);
             break;
         case U8X8_MSG_BYTE_INIT:

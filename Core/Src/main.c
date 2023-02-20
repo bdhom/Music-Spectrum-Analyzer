@@ -7,41 +7,30 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define MAX(A, B)   (((A) > (B)) ? (A) : (B))
-#define ZERO_MIN(A) MAX(A, 0)
-
-#define MEMS_SAMPLE_FREQ 48387.0f
-#define BIN_TOTAL        10
-#define FFT_SIZE         2048
-#define FREQ_COUNT       (FFT_SIZE / 2)
-#define FREQ_PER_COUNT   (MEMS_SAMPLE_FREQ / FFT_SIZE) // ~23.63 Hz / count
-
-#define BIN_CEILING 300.0f
-#define BIN_FLOOR   300.0f
-
+// Private functions
 extern void initialise_monitor_handles(void);
 static void SystemClock_Config(void);
 static void GPIO_Init(void);
 static void DMA_Init(void);
 static void SPI_Init(void);
 static void I2S_Init(void);
-
 static void process_samples(uint16_t *rx);
 static void fill_bins(void);
 
-arm_rfft_fast_instance_f32 FFT_Handle;
+// Global variables
 SPI_HandleTypeDef SPI1_Handle = {0};
 I2S_HandleTypeDef I2S3_Handle = {0};
 DMA_HandleTypeDef DMA_I2S3_Rx_Handle = {0};
 
-uint8_t rxBufState = 0;
-
-uint16_t rxBuf[8 * FFT_SIZE];
-float32_t fftInBuf[FFT_SIZE];
-float32_t fftOutBuf[FFT_SIZE];
-float32_t freqs[FREQ_COUNT];
-float32_t bins[BIN_TOTAL];
-uint16_t freqIndices[BIN_TOTAL] = {1, 2, 5, 10, 25, 50, 100, 200, 500, 1000};
+// Private variables
+static volatile uint8_t rxBufState = 0;
+static uint16_t freqIndices[BIN_TOTAL] = {1, 2, 5, 10, 25, 50, 100, 200, 500, 1000};
+static uint16_t rxBuf[8 * FFT_SIZE];
+static float32_t fftInBuf[FFT_SIZE];
+static float32_t fftOutBuf[FFT_SIZE];
+static float32_t freqs[FREQ_COUNT];
+static float32_t bins[BIN_TOTAL];
+static arm_rfft_fast_instance_f32 FFT_Handle;
 
 int main(void)
 {
@@ -57,7 +46,6 @@ int main(void)
     Display_Init();
 
     HAL_I2S_Receive_DMA(&I2S3_Handle, rxBuf, 4 * FFT_SIZE);
-
     arm_rfft_fast_init_f32(&FFT_Handle, FFT_SIZE);
 
     while (1)
@@ -65,13 +53,12 @@ int main(void)
         if (rxBufState != 0)
         {
             rx = (rxBufState == 1) ? &rxBuf[0] : &rxBuf[4 * FFT_SIZE];
+            rxBufState = 0;
 
             process_samples(rx);
             fill_bins();
             Display_WriteBins(bins, BIN_CEILING, BIN_TOTAL);
             Display_SendPage();
-
-            rxBufState = 0;
         }
     }
 }
@@ -262,16 +249,14 @@ static void fill_bins(void)
     }
 }
 
-// TODO: Implement callback
 void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
 {
+    printf("SPI ERROR. Halting operations...");
+
     while (1)
     {
     }
 }
-
-// TODO: Implement callback
-void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {}
 
 void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
 {

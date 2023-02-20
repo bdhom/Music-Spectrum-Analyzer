@@ -1,8 +1,7 @@
 #include "display.h"
 
+#include "main.h"
 #include "u8g2.h"
-
-#define min(A, B) (((A) < (B)) ? (A) : (B))
 
 extern uint8_t u8x8_stm32_gpio_and_delay(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
 extern uint8_t u8x8_byte_4wire_hw_spi(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
@@ -15,7 +14,6 @@ void Display_Init(void)
                                        u8x8_stm32_gpio_and_delay);
     u8g2_InitDisplay(&u8g2);
     u8g2_SetPowerSave(&u8g2, 0);
-
     u8g2_FirstPage(&u8g2);
 }
 
@@ -33,7 +31,7 @@ inline void Display_WriteBin(uint8_t height, uint8_t width, uint8_t offset)
 void Display_WriteBins(float32_t *bins, float32_t max, uint16_t len)
 {
     uint8_t height, width, offset;
-    uint16_t rows = min(len, BIN_MAX_WIDTH);
+    uint16_t rows = MIN(len, BIN_MAX_WIDTH);
 
     width = BIN_MAX_WIDTH / rows;
 
@@ -41,6 +39,7 @@ void Display_WriteBins(float32_t *bins, float32_t max, uint16_t len)
     {
         offset = i * width;
         height = ((float32_t)BIN_MAX_HEIGHT * bins[i]) / max;
+
         Display_WriteBin(height, width, offset);
     }
 }

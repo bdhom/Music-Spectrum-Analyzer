@@ -16,13 +16,6 @@
 #define OLED_SDIN_Port GPIOB
 #define OLED_Port      GPIOB
 
-// #define MEMS_WS_Pin GPIO_PIN_12
-// #define MEMS_WS_Port GPIOB
-// #define MEMS_CK_Pin GPIO_PIN_13
-// #define MEMS_CK_Port GPIOB
-// #define MEMS_SD_Pin GPIO_PIN_3
-// #define MEMS_SD_Port GPIOC
-
 #define MEMS_WS_Pin  GPIO_PIN_15
 #define MEMS_WS_Port GPIOA
 #define MEMS_CK_Pin  GPIO_PIN_10

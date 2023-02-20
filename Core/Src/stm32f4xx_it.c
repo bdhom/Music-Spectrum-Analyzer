@@ -22,7 +22,6 @@
 #include "stm32f4xx_it.h"
 #include "stm32f4xx_hal.h"
 
-extern SPI_HandleTypeDef SPI1_Handle;
 extern DMA_HandleTypeDef DMA_I2S3_Rx_Handle;
 extern TIM_HandleTypeDef htim6;
 
@@ -127,14 +126,6 @@ void DebugMon_Handler(void)
 void TIM6_DAC_IRQHandler(void)
 {
     HAL_TIM_IRQHandler(&htim6);
-}
-
-/**
- * @brief This function handles SPI 1 interrupts.
- */
-void SPI1_IRQHandler(void)
-{
-    HAL_SPI_IRQHandler(&SPI1_Handle);
 }
 
 /**
